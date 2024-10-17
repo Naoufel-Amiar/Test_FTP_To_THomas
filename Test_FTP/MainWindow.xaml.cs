@@ -5,9 +5,6 @@ using System.Windows;
 
 namespace Test_FTP
 {
-    /// <summary>
-    /// Interaction logic for MainWindow.xaml
-    /// </summary>
     public partial class MainWindow : Window
     {
         public MainWindow()
@@ -17,21 +14,22 @@ namespace Test_FTP
 
         private void DownloadFileButton_Click(object sender, RoutedEventArgs e)
         {
-            string ftpServer = ftpServerTextBox.Text;
-            string username = usernameTextBox.Text;
-            string password = passwordBox.Password;
-            string remoteFilePath = remoteFilePathTextBox.Text;
-            string localFilePath = localFilePathTextBox.Text;
+            string ftpServer = ftpServerTextBox.Text.Trim();
+            string username = usernameTextBox.Text.Trim();
+            string password = passwordBox.Password.Trim();
+            string remoteFilePath = remoteFilePathTextBox.Text.Trim();
+            string localFilePath = localFilePathTextBox.Text.Trim();
 
             try
             {
+                // Création de l'instance de FtpClient
                 FtpClient ftpClient = new FtpClient(ftpServer, username, password);
                 ftpClient.DownloadFile(remoteFilePath, localFilePath);
-                MessageBox.Show("File downloaded successfully!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+                MessageBox.Show("Fichier téléchargé avec succès !", "Succès", MessageBoxButton.OK, MessageBoxImage.Information);
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error downloading file: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show($"Erreur lors du téléchargement : {ex.Message}", "Erreur", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
     }
@@ -53,9 +51,10 @@ namespace Test_FTP
         {
             try
             {
+                // Créez l'URL FTP
                 string ftpUrl = $"ftp://{_ftpServer}/{remoteFilePath}";
 
-                // Create the FTP request
+                // Créer la requête FTP
                 FtpWebRequest request = (FtpWebRequest)WebRequest.Create(ftpUrl);
                 request.Method = WebRequestMethods.Ftp.DownloadFile;
                 request.Credentials = new NetworkCredential(_ftpUsername, _ftpPassword);
@@ -67,11 +66,23 @@ namespace Test_FTP
                     responseStream.CopyTo(fileStream);
                 }
 
-                Console.WriteLine("Download complete.");
+                Console.WriteLine("Téléchargement terminé.");
+            }
+            catch (WebException ex)
+            {
+                // Récupération de l'erreur spécifique
+                if (ex.Response is FtpWebResponse response)
+                {
+                    throw new Exception($"Erreur lors du téléchargement : {response.StatusDescription}");
+                }
+                else
+                {
+                    throw new Exception($"Erreur générale : {ex.Message}");
+                }
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error downloading file: {ex.Message}");
+                Console.WriteLine($"Erreur lors du téléchargement : {ex.Message}");
                 throw; // Re-throw the exception to be handled by the calling method
             }
         }
